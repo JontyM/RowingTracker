@@ -2,11 +2,14 @@ var track_id = '';      // Name/ID of the exercise
 var watch_id = null;    // ID of the geolocation
 var tracking_data = []; // Array containing GPS position objects
 var data = null;
+var speed = null;       // Current speed variable
+var heading = null;     // Current heading variable
+var lastClick = 0;      // Used for storing time of stroke button click
 
 function gps_distance(lat1, lon1, lat2, lon2)
 {
-	// http://www.movable-type.co.uk/scripts/latlong.html
-    var R = 6371; // km
+    // Earth Radius = 6371km
+    var R = 6371;
     var dLat = (lat2-lat1) * (Math.PI / 180);
     var dLon = (lon2-lon1) * (Math.PI / 180);
     var lat1 = lat1 * (Math.PI / 180);
@@ -39,12 +42,15 @@ $("#startTracking_start").live('click', function(){
     	// Success
         function(position){
             tracking_data.push({"timestamp" : position.timestamp, "latitude" : position.coords.latitude, "longitude" : position.coords.longitude});
-            alert(position.coords.latitude);
+            speed = position.coords.speed;
+            heading = position.coords.heading;
+            $("#startTracking_info").html("<strong>Current Exercise Stats:</strong><br>" + "Speed: <strong>" + speed + "</strong><br>" + "Heading: <strong>" + heading + "</strong>");
+	//alert(position.coords.latitude position.coords.longitude);
         },
         
         // Error
         function(error){
-            console.log(error);
+            alert("ERROR(" + error.code + "):" + error.message);
         },
         
         // Settings
@@ -79,14 +85,31 @@ $("#startTracking_stop").live('click', function(){
 
 });
 
+//Function to calculate strokes per minute
+$("#strokeCalculate").live('click', function(){
+	var t = Date.now();
+    if(lastClick > 0) {
+    	var diff = t - lastClick;
+    	var diffRound = (diff / 1000).toFixed(1);
+        var strokes = (60 / diffRound).toFixed(1);
+        $("#strokeOutput").html("Stroke Rate: <strong>" + strokes + "</strong>" + " S/PM");
+        lastClick = t;     
+    }
+    else
+    {
+       	lastClick = t;
+    }
+        
+});
+
 $("#home_clearstorage_button").live('click', function(){
 	window.localStorage.clear();
 });
 
-$("#home_seedgps_button").live('click', function(){
-	window.localStorage.setItem('Sample block', '[{"timestamp":1335700802000,"coords":{"heading":null,"altitude":null,"longitude":170.33488333333335,"accuracy":0,"latitude":-45.87475166666666,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700803000,"coords":{"heading":null,"altitude":null,"longitude":170.33481666666665,"accuracy":0,"latitude":-45.87465,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700804000,"coords":{"heading":null,"altitude":null,"longitude":170.33426999999998,"accuracy":0,"latitude":-45.873708333333326,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700805000,"coords":{"heading":null,"altitude":null,"longitude":170.33318333333335,"accuracy":0,"latitude":-45.87178333333333,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700806000,"coords":{"heading":null,"altitude":null,"longitude":170.33416166666666,"accuracy":0,"latitude":-45.871478333333336,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700807000,"coords":{"heading":null,"altitude":null,"longitude":170.33526833333332,"accuracy":0,"latitude":-45.873394999999995,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700808000,"coords":{"heading":null,"altitude":null,"longitude":170.33427333333336,"accuracy":0,"latitude":-45.873711666666665,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700809000,"coords":{"heading":null,"altitude":null,"longitude":170.33488333333335,"accuracy":0,"latitude":-45.87475166666666,"speed":null,"altitudeAccuracy":null}}]');
+//$("#home_seedgps_button").live('click', function(){
+//	window.localStorage.setItem('Sample block', '[{"timestamp":1335700802000,"coords":{"heading":null,"altitude":null,"longitude":170.33488333333335,"accuracy":0,"latitude":-45.87475166666666,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700803000,"coords":{"heading":null,"altitude":null,"longitude":170.33481666666665,"accuracy":0,"latitude":-45.87465,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700804000,"coords":{"heading":null,"altitude":null,"longitude":170.33426999999998,"accuracy":0,"latitude":-45.873708333333326,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700805000,"coords":{"heading":null,"altitude":null,"longitude":170.33318333333335,"accuracy":0,"latitude":-45.87178333333333,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700806000,"coords":{"heading":null,"altitude":null,"longitude":170.33416166666666,"accuracy":0,"latitude":-45.871478333333336,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700807000,"coords":{"heading":null,"altitude":null,"longitud//e":170.33526833333332,"accuracy":0,"latitude":-45.873394999999995,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700808000,"coords":{"heading":null,"altitude":null,"longitude":170.33427333333336,"accuracy":0,"latitude":-45.873711666666665,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700809000,"coords":{"heading":null,"altitude":null,"longitude":170.33488333333335,"accuracy":0,"latitude":-45.87475166666666,"speed":null,"altitudeAccuracy":null}}]');
 
-});
+//});
 
 // When the user views the history page
 $('#history').live('pageshow', function () {
@@ -156,7 +179,7 @@ $('#track_info').live('pageshow', function(){
 	final_time_s = total_time_s - (final_time_m * 60);
 
 	// Display total distance and time
-	$("#track_info_info").html('Travelled <strong>' + total_km_rounded + '</strong> km in <strong>' + final_time_m + 'm</strong> and <strong>' + final_time_s + 's</strong>');
+	$("#track_info_info").html('Travelled <strong>' + total_km_rounded + '</strong> km in <strong>' + final_time_m + 'm</strong> and <strong>' + final_time_s.toFixed(2) + 's</strong>');
 	
 	// Set the initial Lat and Long of the Google Map
 	var myLatLng = new google.maps.LatLng(data[0].latitude, data[0].longitude);

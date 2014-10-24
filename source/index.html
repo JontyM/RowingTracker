@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-	<title>ExerciseTracker</title>
+	<title>Rowing Tracker</title>
 	
 	<script type="text/javascript" src="cordova-1.7.0.js"></script>
 	<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDCv3qmndnzz_iali6HWyWHB2gxXMnzueg&sensor=false"></script>
@@ -10,6 +10,21 @@
 	<script type="text/javascript" src="jquery.mobile-1.1.0.min.js"></script>
     <script type="text/javascript" src="exercisetracker.js"></script>
 	<link rel="stylesheet" href="jquery.mobile-1.1.0.min.css" />
+	
+	<style>
+	#home_content {
+    	text-align: center;
+    	font-size: 15px;
+	}
+	</style>
+
+	<style>
+    	#mapPlaceholder {
+        height: 200px;
+        width: 100%;
+	margin: 0 auto;
+	}
+    </style>
 	
 </head>
 <body>
@@ -29,17 +44,60 @@
 		</div>
 	</div>
 
-	<div data-role="content">
-		<p>Welcome to the <em>ExerciseTracker</em> app. By clicking <em>Track Workout</em> you can record your workouts using the GPS feature on your phone. Learn how to build this app by reading <em>mobile.tutsplus.com</em>.</p>
+	<div data-role="content" id="home_content">
+		<p>Welcome to the <strong>Rowing Tracker</strong> app.<br>
+			By clicking <b>Track Workout</b> you can record your workouts using the GPS ability of your smartphone<br>
+			as well as determine the current stroke rate by using the <b>Stroke Counter</b><br>
+			By clicking <b>History</b> you can view the past recorded workouts.<br>
+			</p>
 	
 		<button id="home_network_button" data-icon="check">Internet Access Enabled</button>
 		<button id="home_clearstorage_button">Clear local storage</button>
-		<button id="home_seedgps_button">Load Seed GPS Data</button>
+		<div id="mapPlaceholder"></div>
+		<!-- Start of geolocation testing script -->
+<script>
+            if (navigator.geolocation)
+            {
+                navigator.geolocation.getCurrentPosition(showCurrentLocation);
+            }
+            else
+            {
+               alert("Geolocation API not supported.");
+            }
+
+            function showCurrentLocation(position)
+            {
+                var latitude = position.coords.latitude;
+                var longitude = position.coords.longitude;
+                var coords = new google.maps.LatLng(latitude, longitude);
+
+                var mapOptions = {
+                zoom: 15,
+                center: coords,
+                mapTypeControl: true,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            };
+
+            //create the map, and place it in the HTML map div
+            map = new google.maps.Map(
+            document.getElementById("mapPlaceholder"), mapOptions
+            );
+
+            //place the initial marker
+            var marker = new google.maps.Marker({
+            position: coords,
+            map: map,
+            title: "Current location!"
+            });
+            }
+        </script>
+<!-- End of geolocation testing script -->
 	</div>
 
 
 </div>
 <!-- End of Home page -->
+
 
 <!-- Start of Trackwork Out page -->
 <div data-role="page" id="startTracking">
@@ -62,13 +120,24 @@
 				<label for="track_id">Track ID/Name:</label>
 				<input type="text" name="track_id" id="track_id" placeholder="Workout ID/Name"/>
 			</div>
-
-		<button data-role="button" id="startTracking_start">Start Tracking</button>
-		<button data-role="button" id="startTracking_stop">Stop Tracking</button>  
-		
-				<p id="startTracking_info"></p>
-		
-		
+<div>
+	<button data-role="button" id="startTracking_start">Start Tracking</button>
+	<button data-role="button" id="startTracking_stop">Stop Tracking</button>	
+</div>
+<div align="center">
+	<p><strong>Stroke Counter:</strong><br>The stroke counter allows you to calculate the amount of rowing strokes per minute.</p>
+	<img src="stroke.jpg" align="center" alt="rowing stroke image" />
+	<p><strong>Instructions:</strong><br>You will need to click the "Stroke!" button on each successive stroke.<br>
+		A stroke is from "finish" to "finish" or from "catch" to "catch" as shown in the image above.
+	</p>
+	<button data-role="button" id="strokeCalculate">Stroke!</button>
+	<p id="strokeOutput"></p>
+</div>
+	  
+<div data-role="content">
+	<p id="startTracking_info"></p>
+</div>
+				
 	</div>
 
 
